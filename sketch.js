@@ -1,11 +1,37 @@
-let song;
-let fft;
-let particles = [];
-let img
+let song, fft;
+let particles = [], img;
+
+// Loading the Song
+// var loader = document.querySelector(".loader");
+
 function preload() {
-	song = loadSound("./audio/Go_away_Romantic_Dr.mp3");
+	// song = loadSound("./audio/Go_away_Romantic_Dr.mp3");
 	// song = loadSound("./audio/audio1.mp3");
+
+	inputBtn = createFileInput((file) => {
+		console.log("file", file)
+		song = loadSound(file.data);
+		console.log("sound", song);
+		if (song) {
+			console.log("something");
+		}
+		song.play();
+	});
+	inputBtn.position(5, 5);
+
 	img = loadImage("./images/quantum_gradient.svg");
+}
+
+function mouseClicked() {
+	if (song) {
+		if (song.isPlaying()) {
+			song.pause();
+			noLoop()
+		} else {
+			song.play();
+			loop()
+		}
+	}
 }
 
 function setup() {
@@ -19,91 +45,73 @@ function setup() {
 	imageMode(CENTER);
 	// img.filter(BLUR, 12);
 
-	// rectMode(CENTER) // OPTIONAL
 }
-
 function draw() {
-	background(0);// black
+	// if (mouseButton === LEFT) 
+	{
+		background(0);// black
 
-	translate(width / 2, height / 2);
+		translate(width / 2, height / 2);
 
-	fft.analyze();
-	amp = fft.getEnergy(20, 200);
+		fft.analyze();
+		amp = fft.getEnergy(20, 200);
 
-	let wave = fft.waveform();
+		let wave = fft.waveform();
 
-	push();
-	if (amp > 230) {
-		rotate(random(-0.5, 0.5));
-	}
-	image(img, 0, 0, width, height);
-	// image(img, 0, 0, width + 100, height + 100);
-	pop();
-
-	/*
-	//OPTIONAL
-	let alpha = map(amp, 0, 255, 180, 150);
-	fill(0, alpha);
-	noStroke();
-	rect(0, 0, width, height);
-	*/
-
-	stroke(300);
-	strokeWeight(3);
-	noFill();
-	/** 
-	beginShape()
-	//	*****************For LINEAR****************
-	for (let i = 0; i < width; i++) {
-		let index = floor(map(i, 0, width, 0, wave.length));
-		let x = i;
-		let y = wave[index] * 300 + height / 2;
-		vertex(x, y);
-	}
-	endShape();
-	*/
+		push();
+		if (amp > 230) {
+			rotate(random(-0.5, 0.5));
+		}
+		image(img, 0, 0, width, height);
+		// image(img, 0, 0, width + 100, height + 100);
+		pop();
 
 
-	for (let t = -1; t <= 1; t += 2) {
+		stroke(300);
+		strokeWeight(3);
+		noFill();
 		/** 
-		  t is either -1 or +1 hence we can cover both part of circles using that
-		 */
-		beginShape();
-		for (let i = 0; i <= 180; i++) {
-			let index = floor(map(i, 0, 180, 0, wave.length - 1));
-			var r = map(wave[index], -1, 1, 150, 350)// average radius = (150+350)/2 = 250
-			let x = r * sin(i) * t;
-			let y = r * cos(i);
+		beginShape()
+		//	*****************For LINEAR****************
+		for (let i = 0; i < width; i++) {
+			let index = floor(map(i, 0, width, 0, wave.length));
+			let x = i;
+			let y = wave[index] * 300 + height / 2;
 			vertex(x, y);
 		}
 		endShape();
-	}
+		*/
 
-	let particle = new Particle();
-	particles.push(particle);
+		for (let t = -1; t <= 1; t += 2) {
+			/** t is either -1 or +1 hence we can cover both part of circles using that*/
+			beginShape();
+			for (let i = 0; i <= 180; i++) {
+				let index = floor(map(i, 0, 180, 0, wave.length - 1));
+				var r = map(wave[index], -1, 1, 150, 350)// average radius = (150+350)/2 = 250
+				let x = r * sin(i) * t;
+				let y = r * cos(i);
+				vertex(x, y);
+			}
+			endShape();
+		}
 
-	for (let i = particles.length - 1; i >= 0; i--) {
+		let particle = new Particle();
+		particles.push(particle);
 
-		if (!particles[i].edges()) {
-			particles[i].updatePos(amp > 230);
-			particles[i].show();
+		for (let i = particles.length - 1; i >= 0; i--) {
 
-		} else {
-			particles.splice(i, 1);
+			if (!particles[i].edges()) {
+				particles[i].updatePos(amp > 230);
+				particles[i].show();
+
+			} else {
+				particles.splice(i, 1);
+			}
 		}
 	}
 }
 
-function mouseClicked() {
-	if (song.isPlaying()) {
-		song.pause();
-		noLoop()
 
-	} else {
-		song.play();
-		loop()
-	}
-}
 
 
 class Particle {
